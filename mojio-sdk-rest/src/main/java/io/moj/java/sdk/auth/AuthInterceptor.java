@@ -3,7 +3,6 @@ package io.moj.java.sdk.auth;
 import okhttp3.Interceptor;
 import okhttp3.Request;
 import okhttp3.Response;
-import okhttp3.ResponseBody;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -41,20 +40,27 @@ public class AuthInterceptor implements Interceptor {
 
         Response response = chain.proceed(request);
         if (response.code() == HttpURLConnection.HTTP_UNAUTHORIZED) {
-            // we got a 401 - Unauthorized, first try forcing the token to refresh, if that doesn't
-            // work, then broadcast that this access token is no longer valid
-            if (retry) {
-                ResponseBody responseBody = response.body();
-                if (responseBody != null) {
-                    responseBody.close();
+            // synchronized to avoid multiple token refreshing in parallel
+            synchronized (this) {
+                AccessToken currentToken = authenticator.getAccessToken();
+
+                if (currentToken != null && currentToken.equals(accessToken)) {
+                    // token wasn't invalidated yet
+                    authenticator.invalidateAccessToken(accessToken);
+                    currentToken = authenticator.getAccessToken();
                 }
 
-                authenticator.invalidateAccessToken(accessToken);
-                response = doIntercept(chain, false);
-            } else {
-                if (listener != null) {
+                if (currentToken != null) {
+                    requestBuilder.header("Authorization", "Bearer " + currentToken.getAccessToken());
+                }
+
+                request = requestBuilder.build();
+                response = chain.proceed(request);
+                if (response.code() == HttpURLConnection.HTTP_UNAUTHORIZED && listener != null) {
+                    // got a 401 after refresh, broadcast that token no longer valid
                     listener.onAccessTokenExpired();
                 }
+                return response;
             }
         }
         return response;
