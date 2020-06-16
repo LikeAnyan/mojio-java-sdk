@@ -1,6 +1,7 @@
 package io.moj.java.sdk.model.enums;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.truth.Truth;
 
 import org.junit.Test;
 
@@ -93,5 +94,12 @@ public class DistanceUnitTest extends EnumTest<DistanceUnit> {
         for (DistanceUnit unit : DistanceUnit.values()) {
             assertThat(unit.convertTo(unit).convert(1337)).isWithin(0.00000000001f).of(1337);
         }
+    }
+
+    @Test
+    public void milesToMeters() {
+        float mileToMeters = MILES.convertTo(DistanceUnit.METERS).convert(1f);
+        float convertedMetersToMiles = DistanceUnit.METERS.convertTo(MILES).convert(mileToMeters);
+        Truth.assertThat(convertedMetersToMiles).isAtLeast(1f);
     }
 }

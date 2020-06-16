@@ -20,7 +20,7 @@ public enum DistanceUnit {
     NAUTICAL_MILES("NauticalMiles", new float[] { 1.852f, 1.15078f, 1f, 1852f, 185200f, 1852000f }),
 
     @SerializedName("Meters")
-    METERS("Meters", new float[] { 0.001f, 0.000621371f, 0.000539957f, 1f, 100f, 1000f }),
+    METERS("Meters", new float[] { 0.001f, 0.0006213728f, 0.000539957f, 1f, 100f, 1000f }),
 
     @SerializedName("CentiMeter")
     CENTIMETERS("CentiMeter", new float[] { 0.00001f, 0.00000621371f, 0.00000539957f, 0.01f, 1f, 10f }),
